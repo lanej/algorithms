@@ -2,7 +2,6 @@ package botclean
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"os"
 	"strconv"
@@ -26,21 +25,16 @@ func main() {
 func solve(r io.Reader, w io.Writer) {
 	x, y, board := readBoard(r)
 	direction := nextMove(x, y, board)
-	go func() {
-		w.Write([]byte(direction))
-	}()
+	w.Write([]byte(direction))
 }
 
 func readBoard(rd io.Reader) (int, int, [][]byte) {
-	fmt.Println("Read board")
 	var x, y int
 	board := make([][]byte, 5)
 
 	reader := bufio.NewReader(rd)
-	fmt.Println("about to Read coords")
 
 	line, _, err := reader.ReadLine()
-	fmt.Printf("Read coords %#v\n", line)
 	if err != nil {
 		panic(err)
 	}
@@ -54,12 +48,8 @@ func readBoard(rd io.Reader) (int, int, [][]byte) {
 			panic(err)
 		}
 
-		fmt.Printf("Read the line %#v\n", i)
-
 		board[i] = buffer[0:5]
 	}
-
-	fmt.Println("Read the board")
 
 	return x, y, board
 }
@@ -73,6 +63,8 @@ func nextMove(x, y int, board [][]byte) string {
 
 	i, j, direction := nearestNeighbor(x, y, board)
 
+	board[x][y] = clean
+
 	if board[i][j] == clean {
 		board[i][j] = bot
 	}
@@ -81,42 +73,46 @@ func nextMove(x, y int, board [][]byte) string {
 }
 
 func nearestNeighbor(x, y int, board [][]byte) (int, int, string) {
-	var neighborX, neighborY int
-	var distance int
+	var nx, ny, distance int
 	var direction string
+
+	markDirty := func(i, j int) {
+		xd := x - i
+		if xd < 0 {
+			xd = -1 * xd
+		}
+
+		yd := y - j
+		if yd < 0 {
+			yd = -1 * yd
+		}
+
+		nd := xd + yd
+
+		if distance == 0 || nd < distance {
+			distance = nd
+			nx = i
+			ny = j
+		}
+	}
 
 	for i := 0; i < 5; i++ {
 		for j := 0; j < 5; j++ {
 			if board[i][j] == dirty {
-				xDistance := x - i
-				if xDistance < 0 {
-					xDistance = -1 * xDistance
-				}
-
-				yDistance := y - j
-				if yDistance < 0 {
-					yDistance = -1 * yDistance
-				}
-
-				dirtyDistance := xDistance + yDistance
-				if distance == 0 || dirtyDistance < distance {
-					distance = dirtyDistance
-					neighborX = i
-					neighborY = j
-				}
+				markDirty(i, j)
 			}
 		}
 	}
 
-	if neighborX < x {
-		direction = left
-	} else if neighborX > x {
-		direction = right
-	} else if neighborY < y {
+	if nx < x {
 		direction = up
-	} else if neighborY > y {
+	} else if nx > x {
 		direction = down
+	} else if ny < y {
+		direction = left
+	} else if ny > y {
+		direction = right
 	}
 
-	return neighborX, neighborY, direction
+	return nx, ny, direction
 }
