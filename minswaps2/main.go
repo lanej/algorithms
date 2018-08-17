@@ -11,36 +11,22 @@ import (
 
 // Complete the minimumSwaps function below.
 func minimumSwaps(arr []int32) (ans int32) {
-	pos := map[int32]int32{}
-
-	for i, j := range arr {
-		pos[j] = int32(i)
+	swap := func(i, j int32) {
+		tmp := arr[i]
+		arr[i] = arr[j]
+		arr[j] = tmp
+		fmt.Printf("swap: pos(%d)=%d | pos(%d)=%d\narr: %v\n", i, j, arr[j], arr[i], arr)
 	}
 
-	// Build binary tree and hashmap of positions
-	// Starting at i = 0, grab next highest value and swap into first position
-	// Remove first position mapping and binary tree entry
-	// Increment i, and continue until last position
-	for i := int32(0); i < int32(len(arr)); i++ {
-		fmt.Printf("pos: %+v\n", pos)
-		fmt.Printf("arr: %+v\n", arr)
-
-		v := i + 1  // 1 // 2
-		j := arr[i] // 1 // 3
-
-		if v != j {
-			// 4
-			// swap pos
-			si := pos[v]
-
-			pos[j] = si
-			pos[v] = i
-
-			// swap arr
-			arr[si] = j
-			arr[i] = v
-			ans++
+	size := int32(len(arr))
+	for i := int32(0); i < size; i++ {
+		fmt.Printf("i: %d; arr: %v\n", i, arr)
+		if arr[i] == i+1 || arr[i] > size {
+			continue
 		}
+		swap(i, arr[i]-1)
+		ans++
+		i--
 	}
 
 	return
