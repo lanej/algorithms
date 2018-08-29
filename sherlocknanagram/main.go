@@ -33,23 +33,16 @@ func sherlockAndAnagrams(s string) (ans int32) {
 }
 
 func isAnagram(a, b string) bool {
-	if len(a) != len(b) {
-		return false
+	af := [26]int{0}
+	bf := [26]int{0}
+
+	for i := 0; i < len(a); i++ {
+		af[a[i]-'a']++
+		bf[b[i]-'a']++
 	}
 
-	af := map[rune]int{}
-	bf := map[rune]int{}
-
-	for _, r := range a {
-		af[r]++
-	}
-
-	for _, r := range b {
-		bf[r]++
-	}
-
-	for k, c := range af {
-		if c != bf[k] {
+	for i := 0; i < 26; i++ {
+		if af[i] != bf[i] {
 			return false
 		}
 	}
