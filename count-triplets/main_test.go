@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -89,6 +90,7 @@ var cases = []struct {
 
 func TestCountTriplets(t *testing.T) {
 	for x, i := range cases {
+		fmt.Printf("input: %v\n", i.input)
 		ans := countTriplets(i.input, i.r)
 
 		if !reflect.DeepEqual(i.output, ans) {

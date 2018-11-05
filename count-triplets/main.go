@@ -11,45 +11,42 @@ import (
 
 // Complete the countTriplets function below.
 func countTriplets(arr []int64, r int64) (ans int64) {
-	geo := make(map[int64]int64, len(arr))
+	last := int64(len(arr) - 2)
+	length := int64(len(arr))
+	var n int64
+	for i := int64(0); i < last; i++ {
+		r = arr[i+1] / arr[i]
+		gs := []int64{1}
 
-	for _, e := range arr {
-		geo[e]++
-	}
+		for n = i + 1; n < length; n++ {
+			if arr[n] == arr[n-1] {
+				gs[len(gs)-1]++
+				continue
+			}
 
-	var pc int64
-	var pn int64
-	var pe []int64
-
-	if c, ok := geo[1]; ok {
-		delete(geo, 1)
-
-		if c > 2 {
-			ans = geoOnes(c)
+			if arr[n] == arr[n-1]*r {
+				gs = append(gs, 1)
+				continue
+			}
 		}
 
-		for nk, nc := range geo {
-			pc = c
-			pn = nk
-
-			pn = nk * nk
-			pe = []int64{1, nk, pn}
-			pc *= c * nc * geo[pn]
-
-			ans += pc
+		if len(gs) == 1 && gs[0] > 2 {
+			ans += geoOnes(int64(gs[0]))
+			i = i + gs[0]
+            fmt.Printf("ans: %v, n: %v, r: %v, gs: %v\n", ans, n, r, gs)
+			continue
 		}
-	}
 
-	for k, c := range geo {
-		pc = c
-		pn = k
-		pe = []int64{k}
-		for p := int64(1); p < 3; p++ {
-			pn = pn * k
-			pe = append(pe, pn)
-			pc *= geo[pn]
+		if len(gs) > 2 {
+			offset := int64(0)
+			for j := 0; j < len(gs)-2; j++ {
+				offset += gs[j]
+				ans += int64(gs[j] * gs[j+1] * gs[j+2])
+			}
+			i = i + offset
 		}
-		ans += pc
+
+		fmt.Printf("n: %v, r: %v, gs: %v\n", n, r, gs)
 	}
 
 	return
