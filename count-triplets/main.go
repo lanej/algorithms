@@ -11,56 +11,16 @@ import (
 
 // Complete the countTriplets function below.
 func countTriplets(arr []int64, r int64) (ans int64) {
-	last := int64(len(arr) - 2)
-	length := int64(len(arr))
-	var n int64
-	for i := int64(0); i < last; i++ {
-		r = arr[i+1] / arr[i]
-		gs := []int64{1}
+	v2 := map[int64]int64{}
+	v3 := map[int64]int64{}
 
-		for n = i + 1; n < length; n++ {
-			if arr[n] == arr[n-1] {
-				gs[len(gs)-1]++
-				continue
-			}
-
-			if arr[n] == arr[n-1]*r {
-				gs = append(gs, 1)
-				continue
-			}
-		}
-
-		if len(gs) == 1 && gs[0] > 2 {
-			ans += geoOnes(int64(gs[0]))
-			i = i + gs[0]
-            fmt.Printf("ans: %v, n: %v, r: %v, gs: %v\n", ans, n, r, gs)
-			continue
-		}
-
-		if len(gs) > 2 {
-			offset := int64(0)
-			for j := 0; j < len(gs)-2; j++ {
-				offset += gs[j]
-				ans += int64(gs[j] * gs[j+1] * gs[j+2])
-			}
-			i = i + offset
-		}
-
-		fmt.Printf("n: %v, r: %v, gs: %v\n", n, r, gs)
+	for _, k := range arr {
+		ans += v3[k]
+		v3[k*r] += v2[k]
+		v2[k*r]++
 	}
 
 	return
-}
-
-func geoOnes(i int64) int64 {
-	switch i {
-	case 3:
-		return 1
-	case 4:
-		return 4
-	default:
-		return 2*geoOnes(i-1) + (i - 4)
-	}
 }
 
 func main() {
