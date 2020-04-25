@@ -1,0 +1,15 @@
+[package]
+name = "hypertest"
+version = "0.1.0"
+authors = ["Joshua Lane <me@joshualane.com>"]
+edition = "2018"
+
+[dependencies]
+hyper = "0.13"
+tokio = { version = "0.2", features = ["full"] }
+log = "0.4"
+pretty_env_logger = "0.4"
+bytes = "0.5"
+
+[build-dependencies]
+cc = "1.0.46"
