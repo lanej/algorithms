@@ -2,6 +2,6 @@
 #include <stdio.h>
 
 int main() {
-  printf("%i", doubler(4));
+  printf("%s", verifier(4).message);
   return 0;
 }
