@@ -7,20 +7,72 @@ use hyper::Response;
 use hyper::StatusCode;
 use serde_json;
 use serde_json::json;
+use std::ffi::CStr;
+use std::ffi::CString;
+use std::os::raw::c_char;
 
-extern "C" {
-    fn verifier(x: [char; 255]) -> VerificationResult;
+#[repr(C)]
+#[derive(Debug)]
+struct libResult {
+    message: *const c_char,
 }
 
 #[repr(C)]
-pub struct VerificationResult {
-    message: [char; 255],
+#[derive(Debug, PartialEq)]
+pub struct LibResult {
+    pub message: String,
 }
 
-pub fn verify(x: String) -> VerificationResult {
-    let input: [char; 255] = ['\0'; 255];
+pub fn verify(input: &str) -> LibResult {
+    extern "C" {
+        fn just_message(input: *const c_char) -> *const c_char;
+    }
 
-    unsafe { verifier(input) }
+    let foo = unsafe { just_message(CString::new(input).unwrap().as_ptr()) };
+
+    let message = unsafe {
+        CStr::from_ptr(foo)
+            .to_str()
+            .expect("invalid string from verifier")
+    };
+
+    dbg!(&message);
+
+    LibResult {
+        message: message.to_owned(),
+    }
+}
+
+pub fn lib_struct() -> LibResult {
+    extern "C" {
+        fn just_struct() -> libResult;
+    }
+
+    let foo = unsafe { just_struct() };
+
+    let message = unsafe { CStr::from_ptr(foo.message).to_str().unwrap() };
+
+    dbg!(&message);
+
+    LibResult {
+        message: message.to_owned(),
+    }
+}
+
+pub fn lib_struct_with_input(input: &str) -> LibResult {
+    extern "C" {
+        fn just_struct_with_input(input: *const c_char) -> *mut libResult;
+    }
+
+    let lib_result = unsafe { just_struct_with_input(CString::new(input).unwrap().as_ptr()) };
+
+    dbg!(&lib_result);
+
+    let message = unsafe { CStr::from_ptr((*lib_result).message).to_str().unwrap() };
+
+    LibResult {
+        message: message.to_owned(),
+    }
 }
 
 pub async fn serve(req: Request<Body>) -> Result<Response<Body>, Infallible> {

@@ -1,6 +1,8 @@
 struct Result {
-  char message[512];
+  char *message;
 };
 
-struct Result verifier(char input[255]);
+char *just_message(char *input);
+struct Result just_struct();
+struct Result *just_struct_with_input(char *input);
 
