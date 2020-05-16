@@ -5,25 +5,45 @@ use hyper::Method;
 use hyper::Request;
 use hyper::Response;
 use hyper::StatusCode;
+use libc::{c_char, c_int};
 use serde_json;
 use serde_json::json;
 use std::ffi::CStr;
 use std::ffi::CString;
-use std::os::raw::c_char;
 
 #[repr(C)]
 #[derive(Debug)]
-struct libResult {
-    message: *const c_char,
+struct CResult {
+    message: *mut c_char,
+    status: c_int,
+    code: [c_char; 3],
+    enabled: c_char,
 }
 
 #[repr(C)]
-#[derive(Debug, PartialEq)]
-pub struct LibResult {
+#[derive(Debug, Default, PartialEq)]
+pub struct RustResult {
     pub message: String,
+    pub status: i32,
+    pub code: String,
+    pub enabled: Toggle,
 }
 
-pub fn verify(input: &str) -> LibResult {
+#[repr(i8)]
+#[derive(Debug, PartialEq)]
+pub enum Toggle {
+    Unknown = 0,
+    On = 'Y' as i8,
+    Off = 'N' as i8,
+}
+
+impl Default for Toggle {
+    fn default() -> Self {
+        Toggle::Unknown
+    }
+}
+
+pub fn verify(input: &str) -> RustResult {
     extern "C" {
         fn just_message(input: *const c_char) -> *const c_char;
     }
@@ -38,14 +58,15 @@ pub fn verify(input: &str) -> LibResult {
 
     dbg!(&message);
 
-    LibResult {
+    RustResult {
         message: message.to_owned(),
+        ..Default::default()
     }
 }
 
-pub fn lib_struct() -> LibResult {
+pub fn lib_struct() -> RustResult {
     extern "C" {
-        fn just_struct() -> libResult;
+        fn just_struct() -> CResult;
     }
 
     let foo = unsafe { just_struct() };
@@ -54,24 +75,64 @@ pub fn lib_struct() -> LibResult {
 
     dbg!(&message);
 
-    LibResult {
+    RustResult {
         message: message.to_owned(),
+        ..Default::default()
     }
 }
 
-pub fn lib_struct_with_input(input: &str) -> LibResult {
+pub fn lib_struct_with_input(input: &str) -> RustResult {
     extern "C" {
-        fn just_struct_with_input(input: *const c_char) -> *mut libResult;
+        fn just_struct_with_input(input: *const c_char) -> *mut CResult;
     }
 
-    let lib_result = unsafe { just_struct_with_input(CString::new(input).unwrap().as_ptr()) };
+    let cresult = unsafe { just_struct_with_input(CString::new(input).unwrap().as_ptr()) };
 
-    dbg!(&lib_result);
+    dbg!(&cresult);
 
-    let message = unsafe { CStr::from_ptr((*lib_result).message).to_str().unwrap() };
+    let message = unsafe { CStr::from_ptr((*cresult).message).to_str().unwrap() };
 
-    LibResult {
+    RustResult {
         message: message.to_owned(),
+        ..Default::default()
+    }
+}
+
+pub fn lib_mutate_me() -> RustResult {
+    extern "C" {
+        fn mutate_struct(result: *mut CResult) -> libc::c_int;
+    }
+
+    let mut result = CResult {
+        message: CString::new("Hello! ").unwrap().into_raw(),
+        status: 1,
+        code: [0; 3],
+        enabled: 'N' as libc::c_char,
+    };
+
+    unsafe { mutate_struct(&mut result) };
+
+    return result.into();
+}
+
+impl std::convert::From<CResult> for RustResult {
+    fn from(cresult: CResult) -> Self {
+        return RustResult {
+            message: unsafe {
+                CString::from_raw(cresult.message)
+                    .to_string_lossy()
+                    .to_string()
+            },
+            status: cresult.status,
+            enabled: unsafe { std::mem::transmute(cresult.enabled) },
+            code: unsafe {
+                CString::from_vec_unchecked(
+                    cresult.code.to_vec().into_iter().map(|c| c as u8).collect(),
+                )
+                .to_string_lossy()
+                .to_string()
+            },
+        };
     }
 }
 

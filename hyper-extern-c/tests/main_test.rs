@@ -9,8 +9,22 @@ fn test_verify_fn() {
 fn test_lib_struct() {
     assert_eq!(
         app::lib_struct(),
-        app::LibResult {
-            message: "foobar".to_string()
+        app::RustResult {
+            message: "foobar".to_string(),
+            ..Default::default()
+        }
+    );
+}
+
+#[test]
+fn test_mutate_struct() {
+    assert_eq!(
+        app::lib_mutate_me(),
+        app::RustResult {
+            message: "Hello! foocannedbar".to_string(),
+            status: 1,
+            code: "ABC".to_string(),
+            enabled: app::Toggle::On,
         }
     );
 }
@@ -19,8 +33,9 @@ fn test_lib_struct() {
 fn test_lib_struct_with_input() {
     assert_eq!(
         app::lib_struct_with_input("foobar"),
-        app::LibResult {
-            message: "foobar".to_string()
+        app::RustResult {
+            message: "foobar".to_string(),
+            ..Default::default()
         }
     );
 }
