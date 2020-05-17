@@ -26,7 +26,7 @@ struct Result *just_struct_with_input(char *input) {
 int mutate_struct(struct Result *result) {
   strcpy(result->message, strcat(result->message, CANNED));
   result->status = 1;
-  printf("From c: '%c'\n", result->enabled);
+  printf("From c: '%s'\n", result->code);
   strcpy(result->code, "ABC");
   result->enabled = 'Y';
 

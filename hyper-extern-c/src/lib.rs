@@ -98,6 +98,23 @@ pub fn lib_struct_with_input(input: &str) -> RustResult {
     }
 }
 
+fn to_char_array(bytes: Vec<u8>) -> Option<[i8; 3]> {
+    let mut slice = [0i8; 3];
+    if bytes.len() > slice.len() {
+        return None;
+    }
+
+    slice.copy_from_slice(
+        bytes
+            .iter()
+            .map(|c| *c as i8)
+            .into_iter()
+            .collect::<Vec<i8>>()[0..bytes.len()]
+            .as_ref(),
+    );
+    return Some(slice);
+}
+
 pub fn lib_mutate_me() -> RustResult {
     extern "C" {
         fn mutate_struct(result: *mut CResult) -> libc::c_int;
@@ -106,7 +123,7 @@ pub fn lib_mutate_me() -> RustResult {
     let mut result = CResult {
         message: CString::new("Hello! ").unwrap().into_raw(),
         status: 1,
-        code: [0; 3],
+        code: to_char_array(CString::new("ab").unwrap().into_bytes_with_nul()).unwrap(),
         enabled: 'N' as libc::c_char,
     };
 
